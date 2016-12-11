@@ -14,7 +14,7 @@
 
 /**
  通过block解决NSTimer循环引用问题
-
+ 
  @param interval    时间间隔
  @param block       bock回调
  @param repeats     是否重复
@@ -132,7 +132,8 @@
     // 添加定时器
     [self timer];
     if (_number <=1) {
-        [self.timer invalidate];
+        [_timer invalidate];
+        _timer = nil;
         [self.pageControl removeFromSuperview];
         [self.scrollView setContentOffset:CGPointMake(0, 0)];
         _scrollView.contentSize = CGSizeMake(kViewW,kViewH);
@@ -189,7 +190,6 @@
     if ([self.delegate respondsToSelector:@selector(scrollerView:didSelectedInIndex:)]) {
         [self.delegate scrollerView:self didSelectedInIndex:sender.view.tag];
     }
-//    [self.timerTemp setFireDate:[NSDate distantFuture]];//暂停
 }
 
 - (void)reloadData {
@@ -250,13 +250,15 @@
 }
 //timer
 - (NSTimer *)timer {
-    __weak typeof(self)weakSelf = self;
-    _timer = [NSTimer timer_scheduledTimerWithTimeInterval:self.timeInterva
-                                                     block:^{
-                                                         __strong typeof(weakSelf)strongSelf = weakSelf;
-                                                         [strongSelf runTimePage];
-                                                     }
-                                                   repeats:YES];
+    if (!_timer) {
+        __weak typeof(self)weakSelf = self;
+        _timer = [NSTimer timer_scheduledTimerWithTimeInterval:self.timeInterva
+                                                         block:^{
+                                                             __strong typeof(weakSelf)strongSelf = weakSelf;
+                                                             [strongSelf runTimePage];
+                                                         }
+                                                       repeats:YES];
+    }
     return _timer;
 }
 
