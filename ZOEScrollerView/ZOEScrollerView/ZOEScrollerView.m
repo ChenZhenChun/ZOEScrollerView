@@ -250,15 +250,13 @@
 }
 //timer
 - (NSTimer *)timer {
-    if (!_timer) {
-        __weak typeof(self)weakSelf = self;
-        _timer = [NSTimer timer_scheduledTimerWithTimeInterval:self.timeInterva
+    __weak typeof(self)weakSelf = self;
+    _timer = [NSTimer timer_scheduledTimerWithTimeInterval:self.timeInterva
                                                      block:^{
                                                          __strong typeof(weakSelf)strongSelf = weakSelf;
                                                          [strongSelf runTimePage];
                                                      }
                                                    repeats:YES];
-    }
     return _timer;
 }
 
