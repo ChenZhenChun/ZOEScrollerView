@@ -55,7 +55,7 @@
 @property (nonatomic,strong) UILabel        *noteTitle;
 @property (nonatomic,strong) UIView         *noteView;
 @property (nonatomic,strong) UIPageControl  *pageControl;
-@property (nonatomic,assign) NSTimer        *timerTemp;
+@property (nonatomic,assign) NSTimer        *timer;
 
 @end
 @implementation ZOEScrollerView
@@ -76,7 +76,6 @@
         UIImageView *imgView=[[UIImageView alloc] init];
         imgView.contentMode=UIViewContentModeScaleToFill;
         imgView.clipsToBounds=YES;
-        imgView.backgroundColor=[UIColor colorWithRed:1 green:1 blue:1 alpha:1];
         if ([self.delegate respondsToSelector:@selector(scrollerView:imageView:configImageForPageInIndex:)]) {
             [self.delegate scrollerView:self imageView:imgView configImageForPageInIndex:pageIndex];
             if (pageIndex == 0 && _number!=1) {
@@ -84,7 +83,6 @@
                 UIImageView *imgViewLast=[[UIImageView alloc] init];
                 imgViewLast.contentMode=UIViewContentModeScaleToFill;
                 imgViewLast.clipsToBounds=YES;
-                imgViewLast.backgroundColor=[UIColor colorWithRed:1 green:1 blue:1 alpha:1];
                 [imgViewLast setFrame:CGRectMake((_number+1)*kViewW,
                                                  0,
                                                  kViewW,
@@ -102,7 +100,6 @@
                 UIImageView *imgViewFirst=[[UIImageView alloc] init];
                 imgViewFirst.contentMode=UIViewContentModeScaleToFill;
                 imgViewFirst.clipsToBounds=YES;
-                imgViewFirst.backgroundColor=[UIColor colorWithRed:1 green:1 blue:1 alpha:1];
                 [imgViewFirst setFrame:CGRectMake(0,0,kViewW,kViewH)];
                 imgViewFirst.tag = _number-1;
                 imgViewFirst.image = imgView.image;
@@ -129,17 +126,18 @@
         [imgView addGestureRecognizer:Tap];
         [self.scrollView addSubview:imgView];
     }
-    [self.scrollView setContentOffset:CGPointMake(kViewW, 0)];
     [self addSubview:self.scrollView];
     //添加说明文字视图
     [self addSubview:self.noteView];
     // 添加定时器
-    [self timerTemp];
+    [self timer];
     if (_number <=1) {
-        [self.timerTemp invalidate];
+        [self.timer invalidate];
         [self.pageControl removeFromSuperview];
+        [self.scrollView setContentOffset:CGPointMake(0, 0)];
         _scrollView.contentSize = CGSizeMake(kViewW,kViewH);
     }else {
+        [self.scrollView setContentOffset:CGPointMake(kViewW, 0)];
         self.scrollView.contentSize = CGSizeMake(kViewW*(_number+2),kViewH);
     }
 }
@@ -252,27 +250,24 @@
 }
 //timer
 - (NSTimer *)timer {
-    return self.timerTemp;
-}
-- (NSTimer *)timerTemp {
-    if (!_timerTemp) {
+    if (!_timer) {
         __weak typeof(self)weakSelf = self;
-        _timerTemp = [NSTimer timer_scheduledTimerWithTimeInterval:self.timeInterva
+        _timer = [NSTimer timer_scheduledTimerWithTimeInterval:self.timeInterva
                                                      block:^{
                                                          __strong typeof(weakSelf)strongSelf = weakSelf;
                                                          [strongSelf runTimePage];
                                                      }
                                                    repeats:YES];
     }
-    return _timerTemp;
+    return _timer;
 }
 
 - (void)setTimeInterva:(NSTimeInterval)timeInterva {
     _timeInterva = timeInterva;
-    if (_timerTemp) {
-        [_timerTemp invalidate];
-        _timerTemp = nil;
-        [self timerTemp];
+    if (_timer) {
+        [_timer invalidate];
+        _timer = nil;
+        [self timer];
     }
 }
 

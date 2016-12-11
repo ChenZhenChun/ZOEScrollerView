@@ -51,7 +51,6 @@
 @end
 
 @interface ZOEScrollerView : UIView
-@property (assign,nonatomic,readonly) NSTimer            *timer;//扩展字段，一般不需要用到
 @property (assign,nonatomic) NSTimeInterval              timeInterva;//动画间隔 Default 3.0
 @property (nonatomic,assign) id<ZOEScrollerViewDelegate> delegate;
 
