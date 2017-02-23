@@ -73,41 +73,34 @@
         }
     }
     for (int pageIndex=0;pageIndex<_number;pageIndex++) {
-        UIImageView *imgView=[[UIImageView alloc] init];
-        imgView.contentMode=UIViewContentModeScaleToFill;
-        imgView.clipsToBounds=YES;
+        UIImageView *imgView = [ZOEScrollerView createImageView];
+        UITapGestureRecognizer *Tap =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(imagePressed:)] ;
+        [Tap setNumberOfTapsRequired:1];
+        [Tap setNumberOfTouchesRequired:1];
+        [imgView addGestureRecognizer:Tap];
         if ([self.delegate respondsToSelector:@selector(scrollerView:imageView:configImageForPageInIndex:)]) {
             [self.delegate scrollerView:self imageView:imgView configImageForPageInIndex:pageIndex];
             if (pageIndex == 0 && _number!=1) {
                 //尾元素
-                UIImageView *imgViewLast=[[UIImageView alloc] init];
-                imgViewLast.contentMode=UIViewContentModeScaleToFill;
-                imgViewLast.clipsToBounds=YES;
-                [imgViewLast setFrame:CGRectMake((_number+1)*kViewW,
-                                                 0,
-                                                 kViewW,
-                                                 kViewH)];
-                imgViewLast.tag = 0;
-                imgViewLast.image = imgView.image;
+                UIImageView *imgViewLast = [ZOEScrollerView createImageView];
                 UITapGestureRecognizer *Tap =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(imagePressed:)] ;
                 [Tap setNumberOfTapsRequired:1];
                 [Tap setNumberOfTouchesRequired:1];
-                imgViewLast.userInteractionEnabled=YES;
                 [imgViewLast addGestureRecognizer:Tap];
+                [self.delegate scrollerView:self imageView:imgViewLast configImageForPageInIndex:pageIndex];
+                [imgViewLast setFrame:CGRectMake((_number+1)*kViewW,0,kViewW,kViewH)];
+                imgViewLast.tag = 0;
                 [self.scrollView addSubview:imgViewLast];
             }else if (pageIndex == (_number-1) && _number!=1) {
                 //首元素
-                UIImageView *imgViewFirst=[[UIImageView alloc] init];
-                imgViewFirst.contentMode=UIViewContentModeScaleToFill;
-                imgViewFirst.clipsToBounds=YES;
-                [imgViewFirst setFrame:CGRectMake(0,0,kViewW,kViewH)];
-                imgViewFirst.tag = _number-1;
-                imgViewFirst.image = imgView.image;
+                UIImageView *imgViewFirst = [ZOEScrollerView createImageView];
                 UITapGestureRecognizer *Tap =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(imagePressed:)] ;
                 [Tap setNumberOfTapsRequired:1];
                 [Tap setNumberOfTouchesRequired:1];
-                imgViewFirst.userInteractionEnabled=YES;
                 [imgViewFirst addGestureRecognizer:Tap];
+                [self.delegate scrollerView:self imageView:imgViewFirst configImageForPageInIndex:pageIndex];
+                [imgViewFirst setFrame:CGRectMake(0,0,kViewW,kViewH)];
+                imgViewFirst.tag = _number-1;
                 [self.scrollView addSubview:imgViewFirst];
             }
         }
@@ -119,11 +112,6 @@
         }
         [imgView setFrame:CGRectMake(offsetX, 0,kViewW,kViewH)];
         imgView.tag = pageIndex;
-        UITapGestureRecognizer *Tap =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(imagePressed:)] ;
-        [Tap setNumberOfTapsRequired:1];
-        [Tap setNumberOfTouchesRequired:1];
-        imgView.userInteractionEnabled=YES;
-        [imgView addGestureRecognizer:Tap];
         [self.scrollView addSubview:imgView];
     }
     [self addSubview:self.scrollView];
@@ -141,6 +129,14 @@
         [self.scrollView setContentOffset:CGPointMake(kViewW, 0)];
         self.scrollView.contentSize = CGSizeMake(kViewW*(_number+2),kViewH);
     }
+}
+
++ (UIImageView *)createImageView {
+    UIImageView *imageView=[[UIImageView alloc] init];
+    imageView.contentMode=UIViewContentModeScaleToFill;
+    imageView.clipsToBounds=YES;
+    imageView.userInteractionEnabled=YES;
+    return imageView;
 }
 
 #pragma mark -scrollViewDelegate
@@ -163,22 +159,31 @@
     [self.scrollView setContentOffset:CGPointMake((_currentPageIndex+1)*kViewW, 0)];
 }
 
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [self.timer invalidate];
+    self.timer = nil;
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    [self timer];
+}
+
 #pragma mark - Action
 // 定时器 绑定的方法
 - (void)runTimePage {
     if(_pageControl.currentPage == (_number-1)) {
-        //到最后一页时，继续往后翻一页缓存页，然后无缝链接到第一页。（就是要欺骗你的眼睛）
+        //到最后一页时，继续往后翻一页缓存页，然后无缝链接到第一页。
         [UIView animateWithDuration:0.5 animations:^{
             [self.scrollView setContentOffset:CGPointMake((self.pageControl.currentPage+2)*kViewW, 0)];
         } completion:^(BOOL finished){
             self.pageControl.currentPage=0;
-            [self.scrollView scrollRectToVisible:CGRectMake(kViewW,0,kViewW,150) animated:NO];
+            [self.scrollView scrollRectToVisible:CGRectMake(kViewW,0,kViewW,kViewH) animated:NO];
         }];
     }else {
         self.pageControl.currentPage++;
         [UIView animateWithDuration:0.5 animations:^{
             [self.scrollView setContentOffset:CGPointMake((self.pageControl.currentPage+1)*kViewW, 0)];
-            [self.scrollView scrollRectToVisible:CGRectMake(kViewW*(self.pageControl.currentPage+1),0,kViewW,150) animated:NO];
+            [self.scrollView scrollRectToVisible:CGRectMake(kViewW*(self.pageControl.currentPage+1),0,kViewW,kViewH) animated:NO];
         } completion:^(BOOL finished){
             
         }];
