@@ -126,6 +126,8 @@
         [self.scrollView setContentOffset:CGPointMake(0, 0)];
         _scrollView.contentSize = CGSizeMake(kViewW,kViewH);
     }else {
+        self.pageControl.currentPage = 0;
+        self.pageControl.numberOfPages = _number;
         [self.scrollView setContentOffset:CGPointMake(kViewW, 0)];
         self.scrollView.contentSize = CGSizeMake(kViewW*(_number+2),kViewH);
     }
@@ -229,13 +231,11 @@
 - (UIPageControl *)pageControl {
     if (!_pageControl) {
         _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0,10,[UIScreen mainScreen].bounds.size.width, 20.0f)];
-        _pageControl.currentPage = 0;
         _pageControl.backgroundColor = [UIColor clearColor];
         _pageControl.currentPageIndicatorTintColor = [UIColor colorWithRed:0/255.0 green:162/255.0 blue:255/255.0 alpha:1];
         _pageControl.pageIndicatorTintColor = [UIColor colorWithRed:200/255.0 green:200/255.0 blue:200/255.0 alpha:1];
         //_pageControl.pageIndicatorTintColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"blue_circle_icon"]];
         [_pageControl setUserInteractionEnabled:NO];
-        _pageControl.numberOfPages = _number;
     }
     return _pageControl;
 }
