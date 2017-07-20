@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 s.name              = "ZOEScrollerView"
 
 #更新代码必须修改版本号
-s.version           = "1.0.5"
+s.version           = "1.1.0"
 s.summary           = "a ZOEScrollerView for ios."
 s.description       = <<-DESC
 It is a ZOEScrollerView  used on iOS, which implement by Objective-C.

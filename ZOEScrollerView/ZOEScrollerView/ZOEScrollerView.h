@@ -51,8 +51,10 @@
 @end
 
 @interface ZOEScrollerView : UIView
-@property (assign,nonatomic) NSTimeInterval              timeInterva;//动画间隔 Default 3.0
-@property (nonatomic,assign) id<ZOEScrollerViewDelegate> delegate;
+@property (assign,nonatomic) NSTimeInterval                 timeInterva;//动画间隔 Default 3.0
+@property (nonatomic,assign) id<ZOEScrollerViewDelegate>    delegate;
+@property (nonatomic,readonly) UIScrollView                 *scrollView;
+@property (nonatomic,readonly) UIPageControl                *pageControl;
 
 /**
  数据源改变刷新控件
