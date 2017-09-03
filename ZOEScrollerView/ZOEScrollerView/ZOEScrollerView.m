@@ -263,6 +263,8 @@
                                                              [strongSelf runTimePage];
                                                          }
                                                        repeats:YES];
+        //UITrackingRunLoopMode模式的作用是当用户拖动tableView、collectionView等事件时定时器仍然会处理事件
+        [[NSRunLoop currentRunLoop] addTimer:_timer forMode:UITrackingRunLoopMode];
     }
     return _timer;
 }
