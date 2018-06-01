@@ -3,7 +3,7 @@
 //  AiyoyouCocoapods
 //
 //  Created by aiyoyou on 16/1/5.
-//  Copyright © 2016年 zoenet. All rights reserved.
+//  Copyright © 2016年 gulu. All rights reserved.
 //
 
 #import "ZOEScrollerView.h"
@@ -68,6 +68,16 @@
     }
     if (_number<=0)return;
     if (_scrollView) {
+        //父控件大小发生改变 scrollView及noteView大小也要跟着变
+        if (!CGRectEqualToRect(_scrollView.bounds,self.bounds)) {
+            _scrollView.frame = CGRectMake(0,0,kViewW,kViewH);
+            if (_noteView) {
+                _noteView.frame = CGRectMake(0,kViewH-33,kViewW,33);
+            }
+            if (_pageControl) {
+                _pageControl.frame = CGRectMake(0,10,kViewW,20.0f);
+            }
+        }
         for (UIView *view in [_scrollView subviews]) {
             [view removeFromSuperview];
         }
@@ -230,7 +240,7 @@
 //初始化翻页控件
 - (UIPageControl *)pageControl {
     if (!_pageControl) {
-        _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0,10,[UIScreen mainScreen].bounds.size.width, 20.0f)];
+        _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0,10,self.bounds.size.width, 20.0f)];
         _pageControl.backgroundColor = [UIColor clearColor];
         _pageControl.currentPageIndicatorTintColor = [UIColor colorWithRed:0/255.0 green:162/255.0 blue:255/255.0 alpha:1];
         _pageControl.pageIndicatorTintColor = [UIColor colorWithRed:200/255.0 green:200/255.0 blue:200/255.0 alpha:1];
@@ -263,6 +273,8 @@
                                                              [strongSelf runTimePage];
                                                          }
                                                        repeats:YES];
+        //UITrackingRunLoopMode模式的作用是当用户拖动tableView、collectionView等事件时定时器仍然会处理事件
+        [[NSRunLoop currentRunLoop] addTimer:_timer forMode:UITrackingRunLoopMode];
     }
     return _timer;
 }
@@ -281,10 +293,10 @@
     return _timeInterva;
 }
 
-- (void)setDelegate:(id<ZOEScrollerViewDelegate>)delegate {
-    _delegate = delegate;
-    [self configControl];
-}
+//- (void)setDelegate:(id<ZOEScrollerViewDelegate>)delegate {
+//    _delegate = delegate;
+//    [self configControl];
+//}
 
 @end
 
