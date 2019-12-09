@@ -12,6 +12,12 @@
 */
 
 #import <UIKit/UIKit.h>
+
+typedef enum : NSUInteger {
+    Rolling_Horizontal,//水平方向
+    Rolling_Vertical,//垂直方向
+} RollingDirection;
+
 @class ZOEScrollerView;
 
 @protocol ZOEScrollerViewDelegate <NSObject>
@@ -55,6 +61,7 @@
 @property (nonatomic,assign) id<ZOEScrollerViewDelegate>    delegate;
 @property (nonatomic,readonly) UIScrollView                 *scrollView;
 @property (nonatomic,readonly) UIPageControl                *pageControl;
+@property (nonatomic,assign) RollingDirection               rollingDirection;
 
 /**
  数据源改变刷新控件

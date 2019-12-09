@@ -98,7 +98,12 @@
                 [Tap setNumberOfTouchesRequired:1];
                 [imgViewLast addGestureRecognizer:Tap];
                 [self.delegate scrollerView:self imageView:imgViewLast configImageForPageInIndex:pageIndex];
-                [imgViewLast setFrame:CGRectMake((_number+1)*kViewW,0,kViewW,kViewH)];
+                if (self.rollingDirection == Rolling_Horizontal) {
+                    [imgViewLast setFrame:CGRectMake((_number+1)*kViewW,0,kViewW,kViewH)];
+                }else {
+                    [imgViewLast setFrame:CGRectMake(0,(_number+1)*kViewH,kViewW,kViewH)];
+                }
+                
                 imgViewLast.tag = 0;
                 [self.scrollView addSubview:imgViewLast];
             }else if (pageIndex == (_number-1) && _number!=1) {
@@ -116,30 +121,53 @@
         }
         CGFloat offsetX;
         if (_number == 1) {
-            offsetX = pageIndex*kViewW;
+            if (self.rollingDirection == Rolling_Horizontal) {
+                offsetX = pageIndex*kViewW;
+            }else {
+                offsetX = pageIndex*kViewH;
+            }
+            
         }else {
-            offsetX = (pageIndex+1)*kViewW;
+            if (self.rollingDirection == Rolling_Horizontal) {
+                offsetX = (pageIndex+1)*kViewW;
+            }else {
+                offsetX = (pageIndex+1)*kViewH;
+            }
+            
         }
-        [imgView setFrame:CGRectMake(offsetX, 0,kViewW,kViewH)];
+        if (self.rollingDirection == Rolling_Horizontal) {
+            [imgView setFrame:CGRectMake(offsetX, 0,kViewW,kViewH)];
+        }else {
+            [imgView setFrame:CGRectMake(0,offsetX,kViewW,kViewH)];
+        }
+        
         imgView.tag = pageIndex;
         [self.scrollView addSubview:imgView];
     }
     [self addSubview:self.scrollView];
     //添加说明文字视图
-    [self addSubview:self.noteView];
+    if (self.rollingDirection == Rolling_Horizontal) {
+        [self addSubview:self.noteView];
+    }
     // 添加定时器
     [self timer];
     if (_number <=1) {
         [_timer invalidate];
         _timer = nil;
-        [self.pageControl removeFromSuperview];
+        [_pageControl removeFromSuperview];
         [self.scrollView setContentOffset:CGPointMake(0, 0)];
         _scrollView.contentSize = CGSizeMake(kViewW,kViewH);
     }else {
         self.pageControl.currentPage = 0;
         self.pageControl.numberOfPages = _number;
-        [self.scrollView setContentOffset:CGPointMake(kViewW, 0)];
-        self.scrollView.contentSize = CGSizeMake(kViewW*(_number+2),kViewH);
+        if (self.rollingDirection == Rolling_Horizontal) {
+            [self.scrollView setContentOffset:CGPointMake(kViewW, 0)];
+            self.scrollView.contentSize = CGSizeMake(kViewW*(_number+2),kViewH);
+        }else {
+            [self.scrollView setContentOffset:CGPointMake(0,kViewH)];
+            self.scrollView.contentSize = CGSizeMake(kViewW,kViewH*(_number+2));
+        }
+        
     }
 }
 
@@ -154,21 +182,40 @@
 #pragma mark -scrollViewDelegate
 
 - (void)scrollViewDidScroll:(UIScrollView *)sender {
-    CGFloat pageWidth = self.scrollView.frame.size.width;
-    NSInteger pageIndex = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth);
-    if (pageIndex>=_number)pageIndex=0;
-    if (pageIndex<0)pageIndex=_number-1;
-    if (pageIndex != _currentPageIndex) {
-        _currentPageIndex = pageIndex;
-        self.pageControl.currentPage = _currentPageIndex;
-        if ([self.delegate respondsToSelector:@selector(scrollerView:noteTitle:configTitleForPageInIndex:)]) {
-            [self.delegate scrollerView:self noteTitle:self.noteTitle configTitleForPageInIndex:_currentPageIndex];
+    if (self.rollingDirection == Rolling_Horizontal) {
+        CGFloat pageWidth = self.scrollView.frame.size.width;
+        NSInteger pageIndex = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth);
+        if (pageIndex>=_number)pageIndex=0;
+        if (pageIndex<0)pageIndex=_number-1;
+        if (pageIndex != _currentPageIndex) {
+            _currentPageIndex = pageIndex;
+            self.pageControl.currentPage = _currentPageIndex;
+            if ([self.delegate respondsToSelector:@selector(scrollerView:noteTitle:configTitleForPageInIndex:)]) {
+                [self.delegate scrollerView:self noteTitle:self.noteTitle configTitleForPageInIndex:_currentPageIndex];
+            }
+        }
+    }else {
+        CGFloat pageHeight = self.scrollView.frame.size.height;
+        NSInteger pageIndex = floor((self.scrollView.contentOffset.y - pageHeight / 2) / pageHeight);
+        if (pageIndex>=_number)pageIndex=0;
+        if (pageIndex<0)pageIndex=_number-1;
+        if (pageIndex != _currentPageIndex) {
+            _currentPageIndex = pageIndex;
+            self.pageControl.currentPage = _currentPageIndex;
+            if ([self.delegate respondsToSelector:@selector(scrollerView:noteTitle:configTitleForPageInIndex:)]) {
+                [self.delegate scrollerView:self noteTitle:self.noteTitle configTitleForPageInIndex:_currentPageIndex];
+            }
         }
     }
+    
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)_scrollView {
-    [self.scrollView setContentOffset:CGPointMake((_currentPageIndex+1)*kViewW, 0)];
+    if (self.rollingDirection == Rolling_Horizontal) {
+        [self.scrollView setContentOffset:CGPointMake((_currentPageIndex+1)*kViewW, 0)];
+    }else {
+        [self.scrollView setContentOffset:CGPointMake(0,(_currentPageIndex+1)*kViewH)];
+    }
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
@@ -186,16 +233,33 @@
     if(_pageControl.currentPage == (_number-1)) {
         //到最后一页时，继续往后翻一页缓存页，然后无缝链接到第一页。
         [UIView animateWithDuration:0.5 animations:^{
-            [self.scrollView setContentOffset:CGPointMake((self.pageControl.currentPage+2)*kViewW, 0)];
+            if (self.rollingDirection == Rolling_Horizontal) {
+                [self.scrollView setContentOffset:CGPointMake((self.pageControl.currentPage+2)*kViewW, 0)];
+            }else {
+                [self.scrollView setContentOffset:CGPointMake(0, (self.pageControl.currentPage+2)*kViewH)];
+            }
+            
         } completion:^(BOOL finished){
-            self.pageControl.currentPage=0;
-            [self.scrollView scrollRectToVisible:CGRectMake(kViewW,0,kViewW,kViewH) animated:NO];
+            if (self.rollingDirection == Rolling_Horizontal) {
+                self.pageControl.currentPage=0;
+                [self.scrollView scrollRectToVisible:CGRectMake(kViewW,0,kViewW,kViewH) animated:NO];
+            }else {
+                self.pageControl.currentPage=0;
+                [self.scrollView scrollRectToVisible:CGRectMake(0,kViewH,kViewW,kViewH) animated:NO];
+            }
+            
         }];
     }else {
         self.pageControl.currentPage++;
         [UIView animateWithDuration:0.5 animations:^{
-            [self.scrollView setContentOffset:CGPointMake((self.pageControl.currentPage+1)*kViewW, 0)];
-            [self.scrollView scrollRectToVisible:CGRectMake(kViewW*(self.pageControl.currentPage+1),0,kViewW,kViewH) animated:NO];
+            if (self.rollingDirection == Rolling_Horizontal) {
+                [self.scrollView setContentOffset:CGPointMake((self.pageControl.currentPage+1)*kViewW, 0)];
+                [self.scrollView scrollRectToVisible:CGRectMake(kViewW*(self.pageControl.currentPage+1),0,kViewW,kViewH) animated:NO];
+            }else {
+                [self.scrollView setContentOffset:CGPointMake(0, (self.pageControl.currentPage+1)*kViewH)];
+                [self.scrollView scrollRectToVisible:CGRectMake(0,kViewH*(self.pageControl.currentPage+1),kViewW,kViewH) animated:NO];
+            }
+            
         } completion:^(BOOL finished){
             
         }];
